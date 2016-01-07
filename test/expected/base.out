@@ -1,0 +1,170 @@
+\set ECHO none
+CREATE TABLE base36_4bs(id serial primary key, base36_4b base36_4b unique);
+INSERT INTO base36_4bs(base36_4b) VALUES('012345');
+INSERT INTO base36_4bs(base36_4b) VALUES('6789AB');
+INSERT INTO base36_4bs(base36_4b) VALUES('CDEFGH');
+INSERT INTO base36_4bs(base36_4b) VALUES('IJKLMN');
+INSERT INTO base36_4bs(base36_4b) VALUES('OPQRST');
+INSERT INTO base36_4bs(base36_4b) VALUES('UVWXYZ');
+INSERT INTO base36_4bs(base36_4b) VALUES('200004');
+INSERT INTO base36_4bs(base36_4b) VALUES('400002');
+INSERT INTO base36_4bs(base36_4b) VALUES('300003');
+INSERT INTO base36_4bs(base36_4b) VALUES('abcxyz');
+INSERT INTO base36_4bs(base36_4b) VALUES('0'); -- test limits
+INSERT INTO base36_4bs(base36_4b) VALUES('1Z141Z3');
+SELECT * FROM base36_4bs ORDER BY base36_4b;
+ id | base36_4b 
+----+-----------
+ 11 | 0
+  1 | 12345
+  7 | 200004
+  9 | 300003
+  8 | 400002
+  2 | 6789AB
+ 10 | ABCXYZ
+  3 | CDEFGH
+  4 | IJKLMN
+  5 | OPQRST
+  6 | UVWXYZ
+ 12 | 1Z141Z3
+(12 rows)
+
+SELECT MIN(base36_4b) AS min FROM base36_4bs;
+ min 
+-----
+ 0
+(1 row)
+
+SELECT MAX(base36_4b) AS max FROM base36_4bs;
+   max   
+---------
+ 1Z141Z3
+(1 row)
+
+-- index scan
+TRUNCATE base36_4bs;
+INSERT INTO base36_4bs(base36_4b) SELECT '44'||id FROM generate_series(5678, 8000) id;
+SET enable_seqscan = false;
+SELECT id,base36_4b::text FROM base36_4bs WHERE base36_4b = '446000';
+ id  | base36_4b 
+-----+-----------
+ 335 | 446000
+(1 row)
+
+SELECT id,base36_4b FROM base36_4bs WHERE base36_4b >= '447000' LIMIT 5;
+  id  | base36_4b 
+------+-----------
+ 1335 | 447000
+ 1336 | 447001
+ 1337 | 447002
+ 1338 | 447003
+ 1339 | 447004
+(5 rows)
+
+SELECT count(id) FROM base36_4bs;
+ count 
+-------
+  2323
+(1 row)
+
+SELECT count(id) FROM base36_4bs WHERE base36_4b <> ('446500'::text)::base36_4b;
+ count 
+-------
+  2322
+(1 row)
+
+RESET enable_seqscan;
+-- operators and conversions
+SELECT '0'::base36_4b < '0'::base36_4b;
+ ?column? 
+----------
+ f
+(1 row)
+
+SELECT '0'::base36_4b > '0'::base36_4b;
+ ?column? 
+----------
+ f
+(1 row)
+
+SELECT '0'::base36_4b < '1'::base36_4b;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT '0'::base36_4b > '1'::base36_4b;
+ ?column? 
+----------
+ f
+(1 row)
+
+SELECT '0'::base36_4b <= '0'::base36_4b;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT '0'::base36_4b >= '0'::base36_4b;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT '0'::base36_4b <= '1'::base36_4b;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT '0'::base36_4b >= '1'::base36_4b;
+ ?column? 
+----------
+ f
+(1 row)
+
+SELECT '0'::base36_4b <> '0'::base36_4b;
+ ?column? 
+----------
+ f
+(1 row)
+
+SELECT '0'::base36_4b <> '1'::base36_4b;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT '0'::base36_4b = '0'::base36_4b;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT '0'::base36_4b = '1'::base36_4b;
+ ?column? 
+----------
+ f
+(1 row)
+
+-- COPY FROM/TO
+TRUNCATE base36_4bs;
+COPY base36_4bs(base36_4b) FROM STDIN;
+COPY base36_4bs TO STDOUT;
+2336	0
+2337	VVVVVV
+-- clean up --
+DROP TABLE base36_4bs;
+-- errors
+SELECT ''::base36_4b;
+ERROR:  base36_4b number "" must be 1 digits or larger.
+LINE 1: SELECT ''::base36_4b;
+               ^
+SELECT '1Z141Z4'::base36_4b;
+ERROR:  base36_4b number "1Z141Z4" must be 1Z141Z3 or smaller.
+LINE 1: SELECT '1Z141Z4'::base36_4b;
+               ^
+SELECT '!'::base36_4b;
+ERROR:  base36_4b number "!" must only contain digits 0 to 9 and A to Z.
+LINE 1: SELECT '!'::base36_4b;
+               ^
