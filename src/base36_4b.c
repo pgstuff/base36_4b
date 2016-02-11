@@ -28,7 +28,7 @@ static char char_to_num_b36[] = {
 Datum base36_4b_in(PG_FUNCTION_ARGS);
 Datum base36_4b_out(PG_FUNCTION_ARGS);
 Datum base36_4b_to_text(PG_FUNCTION_ARGS);
-Datum text_to_base36_4b(PG_FUNCTION_ARGS);
+Datum base36_4b_from_text(PG_FUNCTION_ARGS);
 Datum base36_4b_send(PG_FUNCTION_ARGS);
 Datum base36_4b_recv(PG_FUNCTION_ARGS);
 Datum base36_4b_lt(PG_FUNCTION_ARGS);
@@ -86,9 +86,9 @@ base36_4b_to_text(PG_FUNCTION_ARGS)
 	PG_RETURN_TEXT_P(base36_4b_text);
 }
 
-PG_FUNCTION_INFO_V1(text_to_base36_4b);
+PG_FUNCTION_INFO_V1(base36_4b_from_text);
 Datum
-text_to_base36_4b(PG_FUNCTION_ARGS)
+base36_4b_from_text(PG_FUNCTION_ARGS)
 {
 	text  *base36_4b_text = PG_GETARG_TEXT_P(0);
 	char  *base36_4b_str = DatumGetCString(DirectFunctionCall1(textout, PointerGetDatum(base36_4b_text)));
